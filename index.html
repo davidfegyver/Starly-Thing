@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Csillagos izé by davidfegyver</title>
+    <style>
+        body,
+        html {
+            background-color: #cdf9ff;
+            color: #fff;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            position: relative;
+        }
+
+        #content {
+            position: relative;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        #overlay {
+            position: absolute;
+            z-index: 5;
+            top: 50%;
+            left: 50%;
+            margin-top: 25%;
+            transform: translate(-50%, -50%);
+        }
+
+    </style>
+    
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+</head>
+
+<body onload="startTime()" style="color: #ffffff">
+    <div id="content">
+        <canvas id="bgCanvas"></canvas>
+        <div id="overlay">
+            <div class="jumbotron jumbotron-fluid" style="background: none;">
+                <div class="container text-center">
+                    <h1 class="display-1" id="clock"></h1>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        var body = document.getElementById("body");
+
+        var background = document.getElementById("bgCanvas");
+        var bgCtx = background.getContext("2d");
+        var width = window.innerWidth;
+        var height = window.innerHeight;
+
+        background.width = width;
+        background.height = height;
+
+        function Star(options) {
+            this.size = Math.random() * 2;
+            this.speed = Math.random() * .05;
+            this.x = options.x;
+            this.y = options.y;
+        }
+
+        Star.prototype.reset = function () {
+            this.size = Math.random() * 2;
+            this.speed = Math.random() * .05;
+            this.x = width;
+            this.y = Math.random() * height;
+        }
+
+        Star.prototype.update = function () {
+            this.x -= this.speed;
+            if (this.x < 0) {
+                this.reset();
+            } else {
+                bgCtx.fillRect(this.x, this.y, this.size, this.size);
+            }
+        }
+
+
+        function HulloStar() {
+            this.reset();
+        }
+
+        HulloStar.prototype.reset = function () {
+            this.x = Math.random() * width;
+            this.y = 0;
+            this.len = (Math.random() * 80) + 10;
+            this.speed = (Math.random() * 10) + 6;
+            this.size = (Math.random() * 1) + 0.1;
+            this.waitTime = new Date().getTime() + (Math.random() * 3000) + 500;
+            this.active = false;
+        }
+
+        HulloStar.prototype.update = function () {
+            if (this.active) {
+                this.x -= this.speed;
+                this.y += this.speed;
+                if (this.x < 0 || this.y >= height) {
+                    this.reset();
+                } else {
+                    bgCtx.lineWidth = this.size;
+                    bgCtx.beginPath();
+                    bgCtx.moveTo(this.x, this.y);
+                    bgCtx.lineTo(this.x + this.len, this.y - this.len);
+                    bgCtx.stroke();
+                }
+            } else {
+                if (this.waitTime < new Date().getTime()) {
+                    this.active = true;
+                }
+            }
+        }
+
+        function checkTime(i) {
+            if (i < 10) i = "0" + i;
+            return i;
+        }
+
+        function startTime() {
+
+            var today = new Date();
+            var h = today.getHours();
+            var m = today.getMinutes();
+            var s = today.getSeconds();
+
+            m = checkTime(m);
+            s = checkTime(s);
+            document.getElementById('clock').innerHTML = h + ":" + m + ":" + s;
+
+            setTimeout(startTime, 1000);
+
+        }
+
+        bgCtx.fillStyle = '#05004c';
+        bgCtx.fillRect(0, 0, width, height);
+
+        var entities = [];
+        entities.push(new HulloStar());
+        entities.push(new HulloStar());
+        for (var i = 0; i < height; i++) {
+            entities.push(new Star({
+                x: Math.random() * width,
+                y: Math.random() * height
+            }));
+        }
+
+        function animate() {
+            bgCtx.fillStyle = '#110E19';
+            bgCtx.fillRect(0, 0, width, height);
+            bgCtx.fillStyle = '#ffffff';
+            bgCtx.strokeStyle = '#ffffff';
+
+            var entLen = entities.length;
+
+            while (entLen--) {
+                entities[entLen].update();
+            }
+            requestAnimationFrame(animate);
+        }
+        animate();
+    </script>
+
+</body>
+
+</html>
